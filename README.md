@@ -86,11 +86,11 @@ scipy
 
 ### Data Preprocessing
 
-The `data_preprocessing.py` module merges multiple omics datasets, applies winsorization, and splits the data into training and test sets.
+The `data_preprocessing.py` module merges multiple omics datasets, applies winsorization, and splits the data into training and test sets.  You can set the upper and lower percentiles of the winsorization and the test dataset size with the respective flags.
 
 **Example Command:**
 ```bash
-python data_preprocessing.py --omics data/proteomics_df_scaled_imputed.tsv data/metabolomics_df_scaled_imputed.tsv
+python data_preprocessing.py --omics data/proteomics.tsv data/metabolomics.tsv --lower_percentile 0.02 --upper_percentile 0.98 --test_size 0.25
 ```
 - `--omics`: Space-separated list of file paths to your omics datasets.  
 - The script merges them on the default key (`public_client_id`) and creates `train_df.csv` and `test_df.csv` in the `output/` folder.
