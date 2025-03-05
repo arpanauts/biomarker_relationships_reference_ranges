@@ -111,7 +111,6 @@ Any hyperparameter not specified will default to the values in the script. Train
 
 ### Bootstrap Analysis
 
-*(Optional – if implemented in your workflow.)*
 
 The `bootstrap_analysis.py` module calculates bootstrapped reference ranges for residuals from the trained models.
 
@@ -134,7 +133,7 @@ biomarker_relationships_reference_ranges/
 │   ├── __init__.py               # (if packaging as a module)
 │   ├── data_preprocessing.py
 │   ├── model_training.py
-│   ├── bootstrap_analysis.py     # (optional)
+│   ├── bootstrap_analysis.py     
 │   └── data/                     # Your input data files
 ├── output/                       # Generated outputs (CSV files, models, etc.)
 ├── requirements.txt
@@ -148,16 +147,3 @@ biomarker_relationships_reference_ranges/
 
 ---
 
-## License
-
-This project is licensed under the [MIT License](LICENSE). Feel free to modify as needed.
-
----
-
-## Contact
-
-For questions or suggestions, please contact [Your Name / Email] or create an issue on this GitHub repository.
-
----
-
-**Enjoy using the Biomarker Relationships & Reference Ranges pipeline!** If you find it helpful, please consider starring the repo or contributing back.
