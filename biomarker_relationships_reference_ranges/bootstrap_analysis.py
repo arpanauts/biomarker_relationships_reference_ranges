@@ -1,5 +1,5 @@
 import warnings
-warnings.filterwarnings("ignore", message=".*partition.*ignore the 'mask' of the MaskedArray.*")
+warnings.simplefilter("ignore", UserWarning)
 
 
 import os
