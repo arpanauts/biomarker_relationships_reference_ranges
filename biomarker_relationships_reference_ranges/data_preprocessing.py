@@ -1,4 +1,5 @@
 import os
+import argparse
 import pandas as pd
 import numpy as np
 from scipy.stats.mstats import winsorize
@@ -129,32 +130,40 @@ def preprocess_data(merged_df, id_column='public_client_id', test_size=0.2,
 
 def main():
     """
-    Example main function to demonstrate usage of the above functions.
-    Adjust file paths to your own omics datasets and ensure they all share
-    the same merge_key column (default: 'public_client_id').
-    """
-    # List of file paths for multiple omics datasets
-    # (Add or remove paths as needed)
-    file_paths = [
-        os.path.join('data', 'proteomics_df_scaled_imputed.tsv'),
-        os.path.join('data', 'metabolomics_df_scaled_imputed.tsv'),
-        # os.path.join('data', 'another_omics_dataset.tsv'),
-        # etc...
-    ]
+    Main function to demonstrate usage.
     
-    # Load and merge all datasets
-    merged_df = load_omics_data(file_paths, merge_key='public_client_id')
+    Accepts a list of omics dataset file paths via command-line arguments.
+    """
+    # Set up command-line argument parsing
+    parser = argparse.ArgumentParser(
+        description="Merge and preprocess omics datasets. All files must share the same merge key."
+    )
+    parser.add_argument(
+        '--omics',
+        nargs='+',
+        required=True,
+        help="List of file paths to omics datasets (space-separated)"
+    )
+    parser.add_argument(
+        '--id_column',
+        default='public_client_id',
+        help="Column name to merge on (default: public_client_id)"
+    )
+    args = parser.parse_args()
+    
+    # Load and merge all datasets based on the provided file paths and merge key
+    merged_df = load_omics_data(args.omics, merge_key=args.id_column)
     
     # Preprocess the merged data
-    train_df, test_df, low_var_feats, high_corr_feats, capping_stats_df = preprocess_data(merged_df)
+    train_df, test_df, low_var_feats, high_corr_feats, capping_stats_df = preprocess_data(merged_df, id_column=args.id_column)
 
-    # Display the sizes of the training and test sets
+    # Display summary information
     print(f"Training set size: {train_df.shape[0]} rows")
     print(f"Test set size: {test_df.shape[0]} rows")
     print(f"Low variance features dropped: {low_var_feats}")
     print(f"Highly correlated features dropped: {high_corr_feats}")
 
-    # Optionally, save the processed data and statistics for further use
+    # Save outputs
     os.makedirs('output', exist_ok=True)
     train_df.to_csv(os.path.join('output', 'train_df.csv'), index=False)
     test_df.to_csv(os.path.join('output', 'test_df.csv'), index=False)
