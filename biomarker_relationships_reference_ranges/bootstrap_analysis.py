@@ -1,4 +1,5 @@
 import os
+import argparse
 import numpy as np
 import pandas as pd
 from joblib import load
@@ -104,7 +105,31 @@ def main():
     """
     Load the test data, derive bootstrap reference ranges for residuals using pretrained models,
     and save the results to an output CSV.
+    
+    This script accepts command-line arguments to adjust the bootstrapping parameters.
     """
+    parser = argparse.ArgumentParser(
+        description="Derive bootstrap reference ranges for residuals using pretrained models."
+    )
+    parser.add_argument("--n_bootstraps", type=int, default=1000,
+                        help="Number of bootstrap resamples (default: 1000)")
+    parser.add_argument("--lower_bootstrap_percentiles", nargs='+', type=float, default=[5, 50, 95],
+                        help="Percentiles for the lower bound (e.g., 5 50 95)")
+    parser.add_argument("--upper_bootstrap_percentiles", nargs='+', type=float, default=[5, 50, 95],
+                        help="Percentiles for the upper bound (e.g., 5 50 95)")
+    parser.add_argument("--iqr_multiplier", type=float, default=1.5,
+                        help="IQR multiplier for threshold calculation (default: 1.5)")
+    parser.add_argument("--winsorize_limits", nargs=2, type=float, default=[0, 0],
+                        help="Winsorize limits as two numbers (default: 0 0 to disable winsorization)")
+    parser.add_argument("--id_column", type=str, default="public_client_id",
+                        help="Identifier column name (default: public_client_id)")
+    args = parser.parse_args()
+    
+    # Convert lists to tuples where needed
+    lower_bootstrap_percentiles = tuple(args.lower_bootstrap_percentiles)
+    upper_bootstrap_percentiles = tuple(args.upper_bootstrap_percentiles)
+    winsorize_limits = tuple(args.winsorize_limits)
+    
     # Define relative paths for test data and model storage
     test_data_path = os.path.join("output", "test_df.csv")
     models_dir = os.path.join("output", "xgb_models")
@@ -112,22 +137,15 @@ def main():
     # Load test data
     test_df = pd.read_csv(test_data_path)
     
-    # Adjustable parameters for bootstrapping and threshold derivation
-    n_bootstraps = 1000
-    lower_bootstrap_percentiles = (5, 50, 95)  # For the lower bound thresholds
-    upper_bootstrap_percentiles = (5, 50, 95)  # For the upper bound thresholds (can differ from lower)
-    iqr_multiplier = 1.5
-    winsorize_limits = (0, 0)  # Set to (0.01, 0.01) for mild winsorization if desired
-    
-    # Derive the bootstrap reference ranges
+    # Derive the bootstrap reference ranges with command-line adjustable parameters
     bootstrap_thresholds_df = derive_bootstrap_reference_ranges(
         test_df, 
         models_dir, 
-        n_bootstraps=n_bootstraps, 
+        n_bootstraps=args.n_bootstraps, 
         lower_bootstrap_percentiles=lower_bootstrap_percentiles, 
         upper_bootstrap_percentiles=upper_bootstrap_percentiles,
-        iqr_multiplier=iqr_multiplier, 
-        id_column='public_client_id',
+        iqr_multiplier=args.iqr_multiplier, 
+        id_column=args.id_column,
         winsorize_limits=winsorize_limits
     )
     
