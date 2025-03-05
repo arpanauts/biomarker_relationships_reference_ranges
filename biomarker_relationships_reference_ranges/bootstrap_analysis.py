@@ -1,15 +1,12 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="numpy")
 
-
 import os
 import argparse
 import numpy as np
 import pandas as pd
 from joblib import load
 from scipy.stats.mstats import winsorize
-
-
 
 def derive_bootstrap_reference_ranges(test_df, models_dir, n_bootstraps=1000, 
                                         lower_bootstrap_percentiles=(5, 50, 95), 
@@ -57,9 +54,13 @@ def derive_bootstrap_reference_ranges(test_df, models_dir, n_bootstraps=1000,
         
         # Optionally winsorize extreme residuals (disable by setting limits to (0,0))
         residuals_winsorized = winsorize(residuals, limits=winsorize_limits)
+        # Convert to a plain NumPy array in case winsorize returns a MaskedArray
+        residuals_winsorized = np.asarray(residuals_winsorized)
         
         # Compute raw IQR-based thresholds (baseline)
-        q1, q3 = np.percentile(residuals_winsorized, [25, 75])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            q1, q3 = np.percentile(residuals_winsorized, [25, 75])
         iqr = q3 - q1
         lower_iqr = q1 - iqr_multiplier * iqr
         upper_iqr = q3 + iqr_multiplier * iqr
@@ -68,7 +69,10 @@ def derive_bootstrap_reference_ranges(test_df, models_dir, n_bootstraps=1000,
         bootstrapped_thresholds = []
         for _ in range(n_bootstraps):
             sample = np.random.choice(residuals_winsorized, size=len(residuals_winsorized), replace=True)
-            q1_sample, q3_sample = np.percentile(sample, [25, 75])
+            sample = np.asarray(sample)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                q1_sample, q3_sample = np.percentile(sample, [25, 75])
             iqr_sample = q3_sample - q1_sample
             lower_sample = q1_sample - iqr_multiplier * iqr_sample
             upper_sample = q3_sample + iqr_multiplier * iqr_sample
@@ -79,8 +83,10 @@ def derive_bootstrap_reference_ranges(test_df, models_dir, n_bootstraps=1000,
         upper_all = bootstrapped_thresholds[:, 1]
         
         # Compute the bootstrap percentiles for lower and upper thresholds separately
-        lower_stats = np.percentile(lower_all, lower_bootstrap_percentiles)
-        upper_stats = np.percentile(upper_all, upper_bootstrap_percentiles)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            lower_stats = np.percentile(lower_all, lower_bootstrap_percentiles)
+            upper_stats = np.percentile(upper_all, upper_bootstrap_percentiles)
         
         # Use the median (second value) as the final threshold if available,
         # otherwise default to the first value in case only one percentile is provided.
