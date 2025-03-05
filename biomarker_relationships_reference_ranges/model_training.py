@@ -6,6 +6,7 @@ from xgboost import XGBRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import mean_squared_error
 from joblib import Parallel, delayed, dump
+import argparse
 
 # Default hyperparameters for the XGBoost models.
 DEFAULT_XGB_PARAMS = {
@@ -107,16 +108,50 @@ def main():
     """
     Load the preprocessed training data, train models for each feature,
     and save both the models and a summary of performance metrics.
+    Enables hyperparameter tuning via command-line arguments.
     """
+    parser = argparse.ArgumentParser(
+        description="Train XGBoost models for each feature using preprocessed training data."
+    )
+    parser.add_argument("--n_estimators", type=int, help="Number of boosting rounds", default=None)
+    parser.add_argument("--learning_rate", type=float, help="Learning rate", default=None)
+    parser.add_argument("--max_depth", type=int, help="Maximum tree depth", default=None)
+    parser.add_argument("--min_child_weight", type=int, help="Minimum sum of instance weight", default=None)
+    parser.add_argument("--subsample", type=float, help="Subsample ratio", default=None)
+    parser.add_argument("--colsample_bytree", type=float, help="Column sample ratio", default=None)
+    parser.add_argument("--reg_alpha", type=float, help="L1 regularization coefficient", default=None)
+    parser.add_argument("--reg_lambda", type=float, help="L2 regularization coefficient", default=None)
+    parser.add_argument("--gamma", type=float, help="Minimum loss reduction to split further", default=None)
+    
+    args = parser.parse_args()
+    
+    # Build hyperparameters dictionary
+    xgb_params = DEFAULT_XGB_PARAMS.copy()
+    if args.n_estimators is not None:
+        xgb_params['n_estimators'] = args.n_estimators
+    if args.learning_rate is not None:
+        xgb_params['learning_rate'] = args.learning_rate
+    if args.max_depth is not None:
+        xgb_params['max_depth'] = args.max_depth
+    if args.min_child_weight is not None:
+        xgb_params['min_child_weight'] = args.min_child_weight
+    if args.subsample is not None:
+        xgb_params['subsample'] = args.subsample
+    if args.colsample_bytree is not None:
+        xgb_params['colsample_bytree'] = args.colsample_bytree
+    if args.reg_alpha is not None:
+        xgb_params['reg_alpha'] = args.reg_alpha
+    if args.reg_lambda is not None:
+        xgb_params['reg_lambda'] = args.reg_lambda
+    if args.gamma is not None:
+        xgb_params['gamma'] = args.gamma
+    
     # Load training data from the output directory (saved by the preprocessing module)
     train_data_path = os.path.join("output", "train_df.csv")
     train_df = pd.read_csv(train_data_path)
     
-    # You can modify hyperparameters here if needed. For example:
-    # custom_params = {**DEFAULT_XGB_PARAMS, "max_depth": 6, "learning_rate": 0.005}
-    # results_df = train_xgb_models(train_df, xgb_params=custom_params)
-    
-    results_df = train_xgb_models(train_df)
+    # Train XGBoost models using the provided (or default) hyperparameters
+    results_df = train_xgb_models(train_df, xgb_params=xgb_params)
     
     # Save the results summary as CSV for further tracking
     results_output_path = os.path.join("output", "xgb_results.csv")
