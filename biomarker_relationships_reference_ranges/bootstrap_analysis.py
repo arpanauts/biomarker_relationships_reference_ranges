@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 from joblib import load
 from scipy.stats.mstats import winsorize
+import warnings
+warnings.filterwarnings("ignore", message="Warning: 'partition' will ignore the 'mask' of the MaskedArray")
+
 
 def derive_bootstrap_reference_ranges(test_df, models_dir, n_bootstraps=1000, 
                                         lower_bootstrap_percentiles=(5, 50, 95), 
