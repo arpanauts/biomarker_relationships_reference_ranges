@@ -1,5 +1,5 @@
 import warnings
-warnings.simplefilter("ignore", UserWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="numpy")
 
 
 import os
