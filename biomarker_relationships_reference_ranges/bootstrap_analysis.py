@@ -1,5 +1,6 @@
 import warnings
-warnings.filterwarnings("ignore", message="Warning: 'partition' will ignore the 'mask' of the MaskedArray")
+warnings.filterwarnings("ignore", message=".*partition.*ignore the 'mask' of the MaskedArray.*")
+
 
 import os
 import argparse
